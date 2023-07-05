@@ -27,6 +27,7 @@ class FuturesApp:
         utc_time_col = pd.to_datetime(df['Open time']).dt.tz_localize('UTC')
         ist_time_col = utc_time_col.dt.tz_convert(ist_tz)
         df['Open time'] = ist_time_col.dt.strftime('%Y-%m-%d %H:%M:%S')
+        df = df.sort_values('Open time', ascending=False)
         
         return df
     
@@ -39,21 +40,25 @@ class FuturesApp:
         return fig
     
     def run(self):
-        st.header('Welcome to Futures')
-        st.header('Earn in seconds')
+        st.header('Welcome to Futures trading')
+        st.header('Get the pair data for data modelling')
 
         tf = st.radio('Time frame for trading', ('1m', '3m', '5m', '30m', '1h'))
-        pr = st.text_input('Which pair you are interested in?', value='BTCUSDT')
+        pr = st.text_input('Which pair are you interested in?')
 
         try:
-            limit = 500
-            df = self.fetch_data(pr, tf, limit)
+            limit = st.number_input('Number of rows to fetch', min_value=1, max_value=1440, value=60)
+            df = self.fetch_data(pr, tf, int(limit))
             
             if not df.empty:
                 st.success('Data fetched successfully!')
                 
                 st.write('Data Preview:')
-                st.dataframe(df.head())
+                st.dataframe(df.head(limit),height=600)
+                csv = df.to_csv(index=False)
+                st.download_button("Download CSV", data=csv, file_name=f'{pr}.csv', mime='text/csv')
+
+                # Displaying the entire DataFrame using st.table() instead of st.dataframe()
 
                 fig = self.generate_chart(df)
                 st.pyplot(fig)
