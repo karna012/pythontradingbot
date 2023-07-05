@@ -63,5 +63,5 @@ class FuturesApp:
             st.error(f'Error occurred: {str(e)}')
 
 if __name__ == '__main__':
-    bot = TradingBot()
+    bot = FuturesApp()
     bot.run()
