@@ -4,6 +4,50 @@ import requests
 import os
 import matplotlib.pyplot as plt
 import pytz
+import base64
+from io import BytesIO
+
+
+
+# Set Streamlit app-wide configuration
+st.set_page_config(
+    page_title="Futures Trading",
+    page_icon="💹",
+    layout="wide"
+)
+
+# Custom CSS styles
+st.markdown(
+    """
+    <style>
+    .header-title {
+        font-size: 36px;
+        font-weight: bold;
+        color: #1E88E5;
+        margin-bottom: 1rem;
+    }
+    .header-subtitle {
+        font-size: 18px;
+        color: #757575;
+        margin-bottom: 2rem;
+    }
+    .data-preview {
+        margin-top: 2rem;
+    }
+    .chart {
+        margin-top: 3rem;
+        padding: 2rem;
+        background-color: #F5F5F5;
+        border-radius: 5px;
+    }
+    .download-csv {
+        margin-top: 2rem;
+        text-align: center;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 class FuturesApp:
     def __init__(self):
@@ -37,31 +81,43 @@ class FuturesApp:
         ax.set_title('BTCUSDT Prices', fontweight='bold')
         ax.set_xlabel('Date', fontweight='bold')
         ax.set_ylabel('Price', fontweight='bold')
+        plt.close(fig)  # Close the figure to avoid displaying it immediately in Streamlit
+        
         return fig
     
     def run(self):
-        st.header('Welcome to Futures trading')
-        st.header('Get the pair data for data modelling')
-
+        st.title('Welcome to Futures Trading')
+        st.markdown('Future of trading')
+        st.markdown('---')
+        
+        st.markdown('<h1 class="header-title">Get the Pair Data for Data Modelling</h1>', unsafe_allow_html=True)
+        st.markdown('<p class="header-subtitle">Select the time frame and pair you are interested in:</p>', unsafe_allow_html=True)
+        
         tf = st.radio('Time frame for trading', ('1m', '3m', '5m', '30m', '1h'))
         pr = st.text_input('Which pair are you interested in?')
-
+        
+        limit = st.number_input('Number of rows to fetch', min_value=1, max_value=1440, value=60)
+        
+        st.markdown('---')
+        
         try:
-            limit = st.number_input('Number of rows to fetch', min_value=1, max_value=1440, value=60)
             df = self.fetch_data(pr, tf, int(limit))
             
             if not df.empty:
                 st.success('Data fetched successfully!')
                 
-                st.write('Data Preview:')
-                st.dataframe(df.head(limit),height=600)
+                st.subheader('Data Preview')
+                st.dataframe(df.head(limit), height=400)
+                
                 csv = df.to_csv(index=False)
-                st.download_button("Download CSV", data=csv, file_name=f'{pr}.csv', mime='text/csv')
+                st.markdown('<div class="download-csv"><a href="data:text/csv;base64,{0}" download="{1}.csv">Download CSV</a></div>'.format(
+                    base64.b64encode(csv.encode()).decode(), pr), unsafe_allow_html=True)
 
-                # Displaying the entire DataFrame using st.table() instead of st.dataframe()
-
-                fig = self.generate_chart(df)
-                st.pyplot(fig)
+                st.markdown('---')
+                
+                #st.subheader('BTCUSDT Prices')
+               
+                
             else:
                 st.warning('No data available for the selected pair and time frame.')
         except Exception as e:
