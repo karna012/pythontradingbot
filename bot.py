@@ -94,7 +94,7 @@ class FuturesApp:
         st.markdown('<p class="header-subtitle">Select the time frame and pair you are interested in:</p>', unsafe_allow_html=True)
         
         tf = st.radio('Time frame for trading', ('1m', '3m', '5m', '30m', '1h'))
-        pr = st.text_input('Which pair are you interested in?')
+        pr = st.text_input('Which pair are you interested in?', autocomplete='off')
         
         limit = st.number_input('Number of rows to fetch', min_value=1, max_value=1440, value=60)
         
